@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Search</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { text-align: center; }
+    form { text-align: center; margin-bottom: 20px; }
+    input { padding: 8px; width: 250px; }
+    button { padding: 8px 12px; }
+    #loading { text-align: center; display: none; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; display: none; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+  <h1>Book Search</h1>
+
+  <form id="searchForm">
+    <input type="text" id="bookInput" placeholder="Enter book title" required />
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="loading">Loading...</div>
+
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Author(s)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const input = document.getElementById('bookInput');
+    const loading = document.getElementById('loading');
+    const table = document.getElementById('resultsTable');
+    const tbody = table.querySelector('tbody');
+
+    async function searchBooks(bookName) {
+      const formattedName = bookName.trim().replace(/\s+/g, '+');
+
+      loading.style.display = 'block';
+      table.style.display = 'none';
+
+      try {
+        const response = await fetch(`https://openlibrary.org/search.json?title=${formattedName}`);
+        const data = await response.json();
+
+        tbody.innerHTML = '';
+
+        data.docs.slice(0, 10).forEach(book => {
+          const row = document.createElement('tr');
+
+          const titleCell = document.createElement('td');
+          titleCell.textContent = book.title || 'N/A';
+
+          const authorCell = document.createElement('td');
+          authorCell.textContent = book.author_name ? book.author_name.join(', ') : 'N/A';
+
+          row.appendChild(titleCell);
+          row.appendChild(authorCell);
+          tbody.appendChild(row);
+        });
+
+        table.style.display = 'table';
+      } catch (error) {
+        alert('Error fetching data');
+        console.error(error);
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const bookName = input.value;
+      searchBooks(bookName);
+    });
+  </script>
+
+</body>
+</html>
